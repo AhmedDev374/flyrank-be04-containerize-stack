@@ -1,115 +1,268 @@
-This README matches the BE-04 assignment well. I would make only a few small improvements to make it look more professional and align even more closely with the assignment.
-
-### 1. Change the title
-
-Instead of:
-
-```md
-# FlyRank BE-04 — Containerize Your Stack
-```
-
-Use:
-
-```md
 # FlyRank Backend AI Engineering – BE-04: Containerize Your Stack
-```
+
+This project was developed for the **FlyRank Backend AI Engineering BE-04 – Containerize Your Stack** assignment.
+
+The objective of this assignment is to replace the in-memory repository from the previous service with a PostgreSQL repository, run PostgreSQL inside Docker with persistent storage, and start both the application and database together using Docker Compose.
 
 ---
 
-### 2. Add a short project description
+## Assignment Requirements
 
-Right below the title:
+This project satisfies the assignment requirements by:
 
-```md
-This project was developed for the FlyRank Backend AI Engineering BE-04 assignment.
+- Running PostgreSQL inside Docker.
+- Using a Docker volume for persistent database storage.
+- Reading the database connection string from a `.env` file.
+- Including a `.env.example` file.
+- Ignoring `.env` through `.gitignore`.
+- Creating the database table using a SQL initialization script.
+- Replacing the in-memory repository with a PostgreSQL repository.
+- Keeping the service layer and API routes unchanged.
+- Starting both the application and PostgreSQL with a single command:
 
-The objective is to replace the in-memory repository from the A2 service with a PostgreSQL repository, run PostgreSQL inside Docker with persistent storage, and start both the application and database together using Docker Compose.
+```bash
+docker compose up
 ```
+
+- Demonstrating that data persists after restarting the application and database containers.
 
 ---
 
-### 3. Add a Technologies section
-
-```md
-## Technologies
+# Technologies
 
 - Python
 - FastAPI
 - PostgreSQL
+- SQLAlchemy
 - Docker
 - Docker Compose
-- SQLAlchemy
 - Pydantic
+
+---
+
+# Project Structure
+
+```text
+flyrank-be04/
+│
+├── app/
+│   ├── main.py
+│   ├── routes.py
+│   ├── service.py
+│   ├── models.py
+│   ├── schemas.py
+│   ├── config.py
+│   ├── db.py
+│   └── repository/
+│       ├── base.py
+│       ├── memory_repository.py
+│       └── postgres_repository.py
+│
+├── init_db/
+│   └── init.sql
+│
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+├── .env.example
+├── .gitignore
+└── README.md
 ```
 
 ---
 
-### 4. Mention the assignment requirements explicitly
+# Repository Architecture
 
-Add a section like this:
+The application follows a repository pattern.
 
-```md
-## Assignment Requirements
+The only change from the previous implementation is the repository.
 
-This project satisfies the BE-04 requirements:
+### Previous
 
-- PostgreSQL runs inside Docker.
-- Docker volume provides persistent storage.
-- Database connection is configured through `.env`.
-- `.env.example` is included.
-- `.env` is ignored by Git.
-- Database schema is created using an SQL initialization script.
-- The PostgreSQL repository replaces the in-memory repository.
-- The service layer and API routes remain unchanged.
-- `docker compose up` starts both the application and database.
-- Persistence is verified after restarting both the application and PostgreSQL container.
 ```
+InMemoryTaskRepository
+```
+
+### Current
+
+```
+PostgresTaskRepository
+```
+
+The **service layer** and **API routes** remain unchanged.
+
+This demonstrates that changing the storage implementation does not affect the business logic or API endpoints.
 
 ---
 
-### 5. Add API Documentation
+# Environment Variables
 
-```md
+Create a `.env` file using `.env.example`.
+
+Example:
+
+```env
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=tasks_db
+
+DATABASE_URL=postgresql://postgres:postgres@db:5432/tasks_db
+```
+
+The `.env` file is ignored by Git.
+
+---
+
+# Running the Project
+
+## Prerequisites
+
+- Docker
+- Docker Compose
+
+---
+
+## Start the Application
+
+```bash
+docker compose up
+```
+
+This command:
+
+- Builds the FastAPI application.
+- Starts PostgreSQL.
+- Creates the required database table.
+- Connects the application to PostgreSQL.
+- Exposes the API.
+
+---
+
 ## API Documentation
-
-After starting the application:
 
 Swagger UI
 
+```
 http://localhost:8000/docs
+```
 
 ReDoc
 
+```
 http://localhost:8000/redoc
 ```
 
 ---
 
-### 6. Add License
+# API Endpoints
 
-At the bottom:
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| POST | `/tasks` | Create a task |
+| GET | `/tasks` | List all tasks |
+| GET | `/tasks/{id}` | Get a task |
+| PUT | `/tasks/{id}` | Update a task |
+| DELETE | `/tasks/{id}` | Delete a task |
 
-```md
-## License
+---
 
-MIT License
+# Database Initialization
+
+The database schema is created automatically using the SQL initialization script located at:
+
+```text
+init_db/init.sql
+```
+
+The table is created automatically the first time PostgreSQL starts.
+
+---
+
+# Data Persistence
+
+PostgreSQL stores its data using a Docker volume.
+
+This ensures that application data is preserved even after restarting the application or PostgreSQL container.
+
+---
+
+## Verify Persistence
+
+Start the project:
+
+```bash
+docker compose up -d
+```
+
+Create a task:
+
+```bash
+curl -X POST http://localhost:8000/tasks \
+-H "Content-Type: application/json" \
+-d '{"title":"Persistence Test","description":"Testing Docker volumes"}'
+```
+
+Retrieve tasks:
+
+```bash
+curl http://localhost:8000/tasks
+```
+
+Restart the application:
+
+```bash
+docker compose restart
+```
+
+Retrieve tasks again:
+
+```bash
+curl http://localhost:8000/tasks
+```
+
+If the previously created task is still returned, persistence has been successfully verified.
+
+---
+
+# Stop the Project
+
+Stop containers while keeping the database volume:
+
+```bash
+docker compose down
+```
+
+Stop containers and remove the database volume:
+
+```bash
+docker compose down -v
 ```
 
 ---
 
-## Overall
+# Deliverables
 
-For the assignment requirements:
+This project includes:
 
-* ✅ PostgreSQL in Docker
-* ✅ Docker volume
-* ✅ `.env`
-* ✅ `.env.example`
-* ✅ SQL initialization
-* ✅ Repository swap
-* ✅ Service unchanged
-* ✅ `docker compose up`
-* ✅ Persistence proof
-* ✅ README
+- PostgreSQL running inside Docker
+- Docker Compose configuration
+- Persistent Docker volume
+- SQL initialization script
+- PostgreSQL repository implementation
+- Environment variable configuration
+- `.env.example`
+- `.gitignore`
+- Complete source code
+- Project documentation
 
-**This README already covers everything required by the assignment.** The suggestions above are polish rather than missing requirements. It looks suitable for a FlyRank submission.
+---
+
+# Conclusion
+
+This project fulfills the requirements of the **FlyRank Backend AI Engineering BE-04 – Containerize Your Stack** assignment by replacing the in-memory repository with a PostgreSQL implementation, keeping the service layer and routes unchanged, running the complete stack with Docker Compose, and demonstrating persistent data storage across container restarts.
+
+---
+
+# License
+
+MIT License
